@@ -1,0 +1,10 @@
+{
+    "require": {
+        "tectalic/openai": "^1.6",
+        "guzzlehttp/guzzle": "^7.8",
+        "league/html-to-markdown": "^5.1",
+        "jfcherng/php-diff": "^6.16",
+        "cebe/markdown": "^1.2",
+        "davechild/textstatistics": "1.*"
+    }
+}
