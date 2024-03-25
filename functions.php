@@ -74,21 +74,7 @@ function open_ai_call($prompt, $model, $temperature, $open_ai_key){
 
 
 
-
-// https://the-algorithms.com/algorithm/count-sentences
-function countSentences(string $sentence): int
-{
-    $sentence = trim($sentence);
-
-    return preg_match_all('/[^\s|^\...](\.|\!|\?)(?!\w)/', $sentence);
-}
-
-
-
-
-
-
-
+// Cleaner that I wrote a while back for a different project, packaged it up into a function for this project
 
 /*
 Note that the cleaner sends the html to DirtyMarkup for formatting.
@@ -333,9 +319,9 @@ function clean_html($html){
     }
 
 
-    $clean = preg_replace('/mailto:([^"]*)/', "mailto_$1", $clean);
+    $clean = preg_replace('/mailto:([^"]*)/', "mailto_$1", $clean); //the markdown converter didn't like mailto links, so swappeed them out for a placeholder in the cleaner functions
 
-    return beautify_html($clean);
+    return beautify_html($clean); // run the html formatter again after processing
 }
 
 function beautify_html($html, $html_fragment = "fragment")

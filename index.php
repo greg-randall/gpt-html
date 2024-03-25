@@ -1,6 +1,10 @@
 <?php
     // remeber to run:
-    // composer install
+    // composer install\
+
+    // remember to copy the file 'blank_keys.php' & rename it 'keys.php' and fill in your OpenAi key
+
+    
 
     require 'vendor/autoload.php';
     include_once 'functions.php';
