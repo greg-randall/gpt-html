@@ -1,90 +1,106 @@
 <?php
+    // remeber to run:
+    // composer install
 
-// remeber to run:
-// composer install
+    require 'vendor/autoload.php';
+    include_once 'functions.php';
+    include_once 'keys.php';
 
+    use Jfcherng\Diff\DiffHelper;
+    use Jfcherng\Diff\Factory\RendererFactory;
+    use League\HTMLToMarkdown\HtmlConverter;
+    use DaveChild\TextStatistics as TS;
 
-require 'vendor/autoload.php';
-include_once 'functions.php';
-include_once 'keys.php';
+    if ( !isset( $_POST[ "input" ] ) ) { //check to see if there's content to clean if not, prompt for it 
+?>
+        <h2>Clean:</h2>
+        <form action="index.php" method="post">
+        <textarea name="input" rows="40" cols="100"></textarea><br><br>
+        <input type="submit">
+        </form>
+        <?php
+        exit( );
 
-use Jfcherng\Diff\DiffHelper;
-use Jfcherng\Diff\Factory\RendererFactory;
-
-use League\HTMLToMarkdown\HtmlConverter;
-
-use DaveChild\TextStatistics as TS;
-
-
-if (!isset($_POST["input"])) { //check to see if there's content to clean if not, prompt for it 
-    ?>
-    Clean:
-     <form action="index.php" method="post">
-     <textarea name="input" rows="50" cols="160"></textarea><br><br>
-     <input type="submit">
-     </form>
-     <?php exit();
-   } else {
-
-    //get & clean the input
-    $html = $_POST["input"]; 
-    $html_formatted = clean_html($html); 
+    } else {
+        //get & clean the input
+        $html           = $_POST[ "input" ];
+        $html_formatted = clean_html( $html );
 
 
-    //convert the input to markdown
-    $converter = new HtmlConverter();
-    $markdown = $converter->convert($html_formatted);
-    $markdown = str_ireplace("mailto_","mailto:",$markdown); //the markdown converter didn't like mailto links, so swappeed them out for a placeholder in the cleaner functions
+        //convert the input to markdown
+        $converter      = new HtmlConverter();
+        $markdown       = $converter->convert( $html_formatted );
+        $markdown       = str_ireplace( "mailto_", "mailto:", $markdown ); //the markdown converter didn't like mailto links, so swappeed them out for a placeholder in the cleaner functions, swapping back here
 
 
-    //send the markdown to the AI to edit
-    $prompt = "Read the following Markdown from a webpage, make it easier to read (less complicated words & shorter sentences where possible), but don't drop dates, names, or other important information! If something looks like it should be a list, heading, etc please make it into a list/heading/etc (headings must descend in size logically starting from ##). Make sure the output is in Markdown (Don't add '```markdown' or similar)!!!\n\n$markdown"; //set the prompt for the AI
-    open_ai_setup($open_ai_key);
-    $open_ai_output = open_ai_call($prompt, "gpt-4-1106-preview", 0.25, $open_ai_key);
-    $markdown_clean = $open_ai_output->choices[0]->message->content;
-    $open_ai_cost = open_ai_cost($open_ai_output);
-    
+        //send the markdown to the AI to edit
+        $prompt         = "Read the following Markdown make edits to increase clairty (reduce word length and sentence length generally, without losing meaning), but try to remove redundant information while sounding natural! Don't drop dates, names, or other important information! If something looks like it should be a list, heading, link, etc please make it into a list/heading/actual link/etc (headings must descend in size logically starting from ##). Make sure the output is in Markdown (Don't add '```markdown' or similar)!!!\n\n$markdown"; //set the prompt for the AI
+
+        open_ai_setup( $open_ai_key );
+        $open_ai_output       = open_ai_call( $prompt, "gpt-4-1106-preview", 0.25, $open_ai_key );
+        $markdown_clean       = $open_ai_output->choices[ 0 ]->message->content;
+        $open_ai_cost         = open_ai_cost( $open_ai_output );
 
 
-    $parser = new \cebe\markdown\Markdown();
-    $html_formatted_clean = beautify_html($parser->parse($markdown_clean));
-
- 
-
-    $jsonResult = DiffHelper::calculate($html_formatted, $html_formatted_clean, 'Json'); // may store the JSON result in your database
-    $htmlRenderer = RendererFactory::make('SideBySide', array('detailLevel' => 'word'));
-    $result = $htmlRenderer->renderArray(json_decode($jsonResult, true));
+        //convert the cleaned markdown back to html
+        $parser               = new \cebe\markdown\Markdown();
+        $html_formatted_clean = beautify_html( $parser->parse( $markdown_clean ) );
 
 
-    $textStatistics = new TS\TextStatistics;
+        //compare the two htmls
+        $jsonResult           = DiffHelper::calculate( $html_formatted, $html_formatted_clean, 'Json' );
+        $htmlRenderer         = RendererFactory::make( 'SideBySide', array(
+             'detailLevel' => 'word' 
+        ) );
+        $result               = $htmlRenderer->renderArray( json_decode( $jsonResult, true ) );
 
-    
 
-    echo "\n<style>" . file_get_contents('style.css') . "</style>";
+        //generate text statistics
+        $textStatistics       = new TS\TextStatistics;
+        $before_reading_ease  = $textStatistics->fleschKincaidReadingEase( strip_tags( $html_formatted ) );
+        $after_reading_ease   = $textStatistics->fleschKincaidReadingEase( strip_tags( $html_formatted_clean ) );
+        $before_wordcount     = str_word_count( $markdown );
+        $after_wordcount      = str_word_count( $markdown_clean );
 
 
-   echo 
-    "<div class='parent'>
-        <div class='child'>
-            Word Count Before: ". str_word_count($markdown) ."<br>
-            Readability Before: ". $textStatistics->fleschKincaidReadingEase(strip_tags($html_formatted)) ."<hr>
-            $html_formatted
+        //output the results
+        echo 
+        "<div class='parent'>
+            <div class='child'>
+                <h2>Before</h2>
+                Word Count: $before_wordcount<br>
+                Readability: $before_reading_ease<hr>
+                $html_formatted
+            </div>
+            <div class='child'>
+                <h2>After</h2>
+                Word Count: $after_wordcount<br>
+                Readability: $after_reading_ease<hr>
+                $html_formatted_clean
+            </div>
         </div>
-        <div class='child'>
-            Word Count After: " . str_word_count($markdown_clean) . "<br>
-            Readability After: ". $textStatistics->fleschKincaidReadingEase(strip_tags($html_formatted_clean)) ."<hr>
-            $html_formatted_clean
+        <div style=\"text-align: center;\">
+            <strong>Cost: " . round( $open_ai_cost * 100, 2 ) . "¢</strong>
         </div>
-    </div>
-    <div style=\"text-align: center;\"><strong>Cost: " . round($open_ai_cost*100,2) . "¢</strong></div>
-    <hr>
-    $result<hr>
-    <pre>" .
-        htmlentities( $html_formatted_clean)
-    ."</pre><hr>
-    <h2>Markdown</h2>
-    <pre>$markdown</pre><hr>
-    <h2>Cleaned Markdown</h2>
-    <pre>$markdown_clean</pre>";
-
-}
+        <hr>
+        
+        <div style=\"margin-left:5%;margin-right:5%;\">
+            <h2>Diff</h2>
+            $result
+        </div>
+        <hr>
+        <div class='parent'>
+            <div class='child'>
+                <h2>Before</h2>
+                ". str_replace( "\n", "<br>", $markdown )  ."
+            </div>
+            <div class='child'>
+                <h2>After</h2>
+                ". str_replace( "\n", "<br>", $markdown_clean )  ."
+            </div>'
+        </div> 
+        <hr>
+        <h2>HTML for Copying</h2>
+        <pre style=\"width:50%;margin-left:5%;margin-right:5%;\">" . htmlentities( $html_formatted_clean ) . "</pre>           
+        <style>" . file_get_contents( 'style.css' ) . "</style>"; // insert the styles mostly for the compare table
+    }
