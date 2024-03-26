@@ -1,10 +1,10 @@
 <?php
     // remeber to run:
-    // composer install\
+    // composer install
 
     // remember to copy the file 'blank_keys.php' & rename it 'keys.php' and fill in your OpenAi key
 
-    
+
 
     require 'vendor/autoload.php';
     include_once 'functions.php';
@@ -15,10 +15,21 @@
     use League\HTMLToMarkdown\HtmlConverter;
     use DaveChild\TextStatistics as TS;
 
-    if ( !isset( $_POST[ "input" ] ) ) { //check to see if there's content to clean if not, prompt for it 
+
+    $base_prompt = "Read the following Markdown, make edits to increase clarity while making things more succinct, make sure it's easy to read, flows naturally, and where possible use shorter words and sentences! If some of the markdown formatting looks off please fix it, make sure that headings descend in size logically, and if there are raw urls change them into links with words. Make sure the output is in Markdown (don't add '```markdown' or similar)!!!";
+
+
+    if ( !isset( $_POST[ "input" ] ) || !isset( $_POST[ "prompt" ] ) ) { //check to see if there's content to clean if not, prompt for it 
 ?>
-        <h2>Clean:</h2>
+        <h1>GPT HTML</h1>
+        
+        <p style="width:40%;">Use this tool to clean a dirty webpage. It does general HTML cleanup (making the output something that WordPress will happily use in Gutenberg). It also attempts to do a light text edit as well as fix issues of things not being headings, lists, etc using ChatGPT.</p>
+        <p style="width:40%;">Edit the prompt below to meet your needs, but note that the content passed to ChatGPT is Markdown (seems that ChatGPT works better with Markdown than HTML). The program also expects ChatGPT to return Markdown.</p>
+
         <form action="index.php" method="post">
+        <h2>Prompt:</h2>
+        <textarea name="prompt" rows="10" cols="100" ><?php echo $base_prompt; ?></textarea><br><br>
+        <h2>Input HTML:</h2>
         <textarea name="input" rows="40" cols="100"></textarea><br><br>
         <input type="submit">
         </form>
@@ -38,7 +49,7 @@
 
 
         //send the markdown to the AI to edit
-        $prompt         = "Read the following Markdown make edits to increase clairty (reduce word length and sentence length generally, without losing meaning), but try to remove redundant information while sounding natural! Don't drop dates, names, or other important information! If something looks like it should be a list, heading, link, etc please make it into a list/heading/actual link/etc (headings must descend in size logically starting from ##). Make sure the output is in Markdown (Don't add '```markdown' or similar)!!!\n\n$markdown"; //set the prompt for the AI
+        $prompt         = $_POST[ "prompt" ] . "\n\n$markdown"; //set the prompt for the AI
 
         open_ai_setup( $open_ai_key );
         $open_ai_output       = open_ai_call( $prompt, "gpt-4-1106-preview", 0.25, $open_ai_key );
@@ -71,13 +82,13 @@
         echo 
         "<div class='parent'>
             <div class='child'>
-                <h2>Before</h2>
+                <h2>Preview Before</h2>
                 Word Count: $before_wordcount<br>
                 Readability: $before_reading_ease<hr>
                 $html_formatted
             </div>
             <div class='child'>
-                <h2>After</h2>
+                <h2>Preview After</h2>
                 Word Count: $after_wordcount<br>
                 Readability: $after_reading_ease<hr>
                 $html_formatted_clean
@@ -95,13 +106,13 @@
         <hr>
         <div class='parent'>
             <div class='child'>
-                <h2>Before</h2>
+                <h2>Markdown Before</h2>
                 ". str_replace( "\n", "<br>", $markdown )  ."
             </div>
             <div class='child'>
-                <h2>After</h2>
+                <h2>Markdown After</h2>
                 ". str_replace( "\n", "<br>", $markdown_clean )  ."
-            </div>'
+            </div>
         </div> 
         <hr>
         <h2>HTML for Copying</h2>
