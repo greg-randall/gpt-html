@@ -16,10 +16,10 @@
     use DaveChild\TextStatistics as TS;
 
 
-    $base_prompt = "Read the following Markdown, make edits to increase clarity while making things more succinct, make sure the writing flows naturally, and make sure the document is an 8th grade reading level! If some of the markdown formatting looks off please fix it, make sure that headings descend in size logically, and if you see raw URLs change them into links with words. Make sure the output is in Markdown (don't add '```markdown' or similar)!!!";
+    $base_prompt = "Read the following Markdown, make edits to increase clarity while making things more succinct, make sure the writing flows naturally, and make sure the document is an 8th grade reading level! If some of the markdown formatting looks off please fix it, make sure that headings descend in size logically, if you see raw URLs change them into links with words, and Do Not Remove Links (reformatting is ok). Make sure the output is in Markdown (don't add '```markdown' or similar)!!!";
 
-
-    if ( !isset( $_POST[ "input" ] ) || !isset( $_POST[ "prompt" ] ) ) { //check to see if there's content to clean if not, prompt for it 
+    //check to see if there's content to clean if not, prompt for it
+    if ( !isset( $_POST[ "input" ] ) || !isset( $_POST[ "prompt" ] ) ) {  
 ?>
         <h1>GPT HTML</h1>
         
