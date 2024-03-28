@@ -25,6 +25,7 @@
         
         <p style="width:40%;">Use this tool to clean a dirty webpage. It does general HTML cleanup (making the output something that WordPress will happily use in Gutenberg). It also attempts to do a light text edit as well as fix issues of things not being headings, lists, etc using ChatGPT.</p>
         <p style="width:40%;">Edit the prompt below to meet your needs, but note that the content passed to ChatGPT is Markdown (seems that ChatGPT works better with Markdown than HTML). The program also expects ChatGPT to return Markdown.</p>
+        <p style="width:40%;"><strong>Read the edited text!!! Make sure it hasn't removed critical information or hallucinated something!!!</strong></p>
 
         <form action="index.php" method="post">
         <h2>Prompt:</h2>
