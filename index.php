@@ -95,7 +95,8 @@
             </div>
         </div>
         <div style=\"text-align: center;\">
-            <strong>Cost: " . round( $open_ai_cost * 100, 2 ) . "¢</strong>
+            <strong>Cost: " . round( $open_ai_cost * 100, 2 ) . "¢</strong><br>
+            <button id='copyButton'>Copy HTML to Clipboard</button>
         </div>
         <hr>
         
@@ -116,8 +117,28 @@
         </div> 
         <hr>
         <h2>HTML for Copying</h2>
-        <pre style=\"width:50%;margin-left:5%;margin-right:5%;\">" . htmlentities( $html_formatted_clean ) . "</pre>           
-        <style>" . file_get_contents( 'style.css' ) . "</style>"; // insert the styles mostly for the compare table
+        <pre style=\"width:50%;margin-left:5%;margin-right:5%;\">" . htmlentities( $html_formatted_clean ) . "</pre>
+        <textarea style=\"display:none;\">$html_formatted_clean</textarea>     
+        <style>" . file_get_contents( 'style.css' ) . "</style>". // insert the styles mostly for the compare table
+        "<script>
+            // Select the button
+            var button = document.querySelector('#copyButton');
+        
+            // Add a click event listener to the button
+            button.addEventListener('click', function() {
+                // Select the textarea
+                var textarea = document.querySelector('textarea');
+        
+                // Copy the contents of the textarea to the clipboard
+                navigator.clipboard.writeText(textarea.value)
+                    .then(() => {
+                        console.log('Text copied to clipboard');
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+            });
+        </script>";
     }
     $end_time = microtime(true);
     $execution_time = $end_time - $start_time;
