@@ -1,4 +1,4 @@
-<?php
+<?php $start_time = microtime(true);
     // remeber to run:
     // composer install
 
@@ -119,3 +119,6 @@
         <pre style=\"width:50%;margin-left:5%;margin-right:5%;\">" . htmlentities( $html_formatted_clean ) . "</pre>           
         <style>" . file_get_contents( 'style.css' ) . "</style>"; // insert the styles mostly for the compare table
     }
+    $end_time = microtime(true);
+    $execution_time = $end_time - $start_time;
+    echo "Execution time: $execution_time seconds";

@@ -133,7 +133,12 @@ function clean_html($html){
   
     error_reporting(E_ERROR | E_PARSE); //DOMDocument throws a fair number of errors, we'll quiet them down
 
-    $html = $_POST["input"];
+    
+
+    //$html = $_POST["input"];
+
+    $html = removeHtmlComments($html);
+
     if (substr_count($html, "<html") > 0) {
         //determine if the input is a full html document or not, gets passed to the dirtymarkup cleaning below
         $html_fragment = "full";
@@ -345,7 +350,29 @@ function beautify_html($html, $html_fragment = "fragment")
 
 
 
+function removeHtmlComments($html) {
+    // Create a new DOMDocument instance
+    $dom = new DOMDocument();
 
+    // Load the HTML into the DOMDocument instance
+    // Suppress warnings due to invalid HTML
+    @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+    // Create a new DOMXPath instance
+    $xpath = new DOMXPath($dom);
+
+    // Find all comment nodes
+    $comments = $xpath->query('//comment()');
+
+    // Loop through all comment nodes
+    foreach ($comments as $comment) {
+        // Remove the comment node from its parent node
+        $comment->parentNode->removeChild($comment);
+    }
+
+    // Return the HTML without comments
+    return $dom->saveHTML();
+}
 
 //////////////////////////////////////////////////////////////////////
 /////scooped some functions from wordpress to add paragraph tags//////
