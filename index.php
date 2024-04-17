@@ -85,13 +85,13 @@
             <div class='child'>
                 <h2>Preview Before</h2>
                 Word Count: $before_wordcount<br>
-                Readability: $before_reading_ease<hr>
+                Readability: $before_reading_ease (higher is easier to read)<hr>
                 $html_formatted
             </div>
             <div class='child'>
                 <h2>Preview After</h2>
                 Word Count: $after_wordcount<br>
-                Readability: $after_reading_ease<hr>
+                Readability: $after_reading_ease (higher is easier to read)<hr>
                 $html_formatted_clean
             </div>
         </div>
